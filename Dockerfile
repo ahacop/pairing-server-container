@@ -14,6 +14,7 @@ RUN \
   curl \
   direnv \
   git \
+  locales \
   man \
   openssh-client \
   openssh-server \
@@ -60,7 +61,13 @@ RUN \
 # Fix for occasional errors in perl stuff (git, ack) saying that locale
 # vars aren't set.
 
-RUN locale-gen en_US en_US.UTF-8 && dpkg-reconfigure locales
+ENV LANG=en_US
+RUN \
+  locale-gen $LANG $LANG.UTF-8 && \
+  sed -i -e "s/# $LANG.*/$LANG.UTF-8 UTF-8/" /etc/locale.gen && \
+  dpkg-reconfigure --frontend=noninteractive locales && \
+  update-locale LANG=$LANG
+
 
 # Add docker arg to define which github user we should pull config from
 # TODO: accomodate github users that do not have ahacop's exact
