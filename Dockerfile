@@ -29,21 +29,6 @@ RUN \
 
 RUN gem install github-auth
 
-# Install ruby-install, ruby via ruby-install, chruby, and gems
-RUN \
-  wget -O ruby-install-0.6.0.tar.gz https://github.com/postmodern/ruby-install/archive/v0.6.0.tar.gz &&\
-  tar -xzvf ruby-install-0.6.0.tar.gz &&\
-  cd ruby-install-0.6.0/ &&\
-  sudo make install &&\
-  ruby-install --cleanup --latest ruby &&\
-  wget -O chruby-0.3.9.tar.gz https://github.com/postmodern/chruby/archive/v0.3.9.tar.gz &&\
-  tar -xzvf chruby-0.3.9.tar.gz &&\
-  cd chruby-0.3.9/ &&\
-  sudo make install &&\
-  ./scripts/setup.sh &&\
-  /bin/bash -c "source /usr/local/share/chruby/chruby.sh && chruby ruby && gem install homesick git-duet -N" &&\
-  rm -rf /tmp/*
-
 # Install and setup wemux
 RUN \
   git clone git://github.com/zolrath/wemux.git /usr/local/share/wemux &&\
@@ -68,6 +53,18 @@ RUN \
   dpkg-reconfigure --frontend=noninteractive locales && \
   update-locale LANG=$LANG
 
+# Install ruby-install and chruby and gems
+RUN \
+  wget -O ruby-install-0.6.0.tar.gz https://github.com/postmodern/ruby-install/archive/v0.6.0.tar.gz &&\
+  tar -xzvf ruby-install-0.6.0.tar.gz &&\
+  cd ruby-install-0.6.0/ &&\
+  make install &&\
+  wget -O chruby-0.3.9.tar.gz https://github.com/postmodern/chruby/archive/v0.3.9.tar.gz &&\
+  tar -xzvf chruby-0.3.9.tar.gz &&\
+  cd chruby-0.3.9/ &&\
+  make install &&\
+  ./scripts/setup.sh &&\
+  rm -rf /tmp/*
 
 # Add docker arg to define which github user we should pull config from
 # TODO: accomodate github users that do not have ahacop's exact
@@ -81,6 +78,11 @@ RUN \
   echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 USER dev
+
+# Install ruby via ruby-install
+RUN \
+  ruby-install --cleanup ruby &&\
+  /bin/bash -c "source /usr/local/share/chruby/chruby.sh && chruby ruby && gem install homesick git-duet -N"
 
 # Config dev user environment with github user's dotfiles/dotvim
 RUN \
